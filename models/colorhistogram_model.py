@@ -31,66 +31,23 @@ class ColorHistogram_Model(BaseModel):
         nb = opt.batchSize
         size = opt.fineSize 
 
-        self.hist_l = 8    # Number of bin L originally 10
-        self.hist_ab = opt.ab_bin # Number of bin AB
-        if opt.ab_bin != 64:
-            opt.network_H = 'basic_{}'.format(opt.ab_bin)  # Number of bin AB
-        self.hist_enc = 64 # Number of Channel
+        self.hist_l = opt.l_bin
+        self.hist_ab = opt.ab_bin
         self.img_type = opt.img_type
 
-
-        print(opt.no_dropout)
-        self.netG_A = networks.define_G(3, 3, opt.ngf, opt.network, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids)
-        # self.netG_A = networks.define_G(3, 3, opt.ngf, 'cvpr', opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids)
-        self.netC_A = networks.define_C((self.hist_l+1), 64, opt.ngf, opt.network_H, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids).cuda() # out_nc=32
-
-        self.netHist_64 = networks.define_Hist(self.hist_ab)
-        self.netHist_32 =networks.define_Hist(32)
-        self.netHist_8 = networks.define_Hist(self.hist_l)
-
-        self.netHist_64.cuda()
-        self.netHist_64.eval()
-        self.netHist_32.cuda()
-        self.netHist_32.eval()
-        self.netHist_8.cuda()
-        self.netHist_8.eval()
+        self.IRN = networks.define_G(3, 3, opt.ngf, opt.network, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids)
+        self.HEN = networks.define_C((self.hist_l+1), 64, opt.ngf, opt.network_H, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids).cuda()
 
         if not self.isTrain or opt.continue_train:
             which_epoch = opt.which_epoch
           
-            self.load_network(self.netG_A, 'G_A', which_epoch)
-            if opt.network_H != 'image':
-                self.load_network(self.netC_A, 'C_A', which_epoch)
-            print('***********LOADED*************')
-
-
-        if self.isTrain:
-            self.old_lr = opt.lr
-            self.fake_A_pool = ImagePool(opt.pool_size)
-            self.fake_B_pool = ImagePool(opt.pool_size)
-            # define loss functions
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
-            self.criterionL1 = torch.nn.L1Loss()
-            self.criterionMSE = torch.nn.MSELoss()
-            # initialize optimizers
-            self.optimizer_G = torch.optim.Adam(itertools.chain(
-                                                 self.netG_A.parameters(),
-                                                 self.netC_A.parameters(),
-                                                 ),lr=opt.lr, betas=(opt.beta1, 0.999))
-
-            self.optimizers = []
-            self.schedulers = []
-            self.optimizers.append(self.optimizer_G)
-            for optimizer in self.optimizers:
-                self.schedulers.append(networks.get_scheduler(optimizer, opt))
+            self.load_network(self.IRN, 'G_A', which_epoch)
+            self.load_network(self.HEN, 'C_A', which_epoch)
 
         print('---------- Networks initialized -------------')
-        networks.print_network(self.netG_A)
-        networks.print_network(self.netHist_64)
-        networks.print_network(self.netC_A)
-
+        networks.print_network(self.IRN)
+        networks.print_network(self.HEN)
         print('-----------------------------------------------')
-        print(opt.mode)
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == 'AtoB'
@@ -98,58 +55,18 @@ class ColorHistogram_Model(BaseModel):
         input_A = input['A']
         input_B = input['B']
         input_C = input['C']
-        input_A_Map=input['A_map']
-        input_B_Map=input['A_map']
+        input_A_Map = input['A_map']
+        input_B_Map = input['B_map']
         pair = input['pair']
 
         if len(self.gpu_ids) > 0:
-            # input_A = input_A.cuda(self.gpu_ids[0], async=True)
-            # input_B = input_B.cuda(self.gpu_ids[0], async=True)
             input_A = input_A.cuda(self.gpu_ids[0])
             input_B = input_B.cuda(self.gpu_ids[0])
+            
         self.input_A = input_A
         self.input_B = input_B
         self.input_C = input_C
 
-        #self.input_A_Seg = self.read_t7(input_A_Seg)
-        #self.input_B_Seg = self.read_t7(input_B_Seg)
-        self.input_A_Map = input_A_Map
-        self.input_B_Map = input_B_Map
-        self.input_A_Seg, self.input_B_Seg, self.input_SegNum = self.MakeLabelFromMap(self.input_A_Map,self.input_B_Map)
-
-        self.pair = pair
-
-        self.image_paths = input['A_paths' if AtoB else 'B_paths']
-
-    def set_input_test(self, input):
-        AtoB = self.opt.which_direction == 'AtoB'
-        
-        input_A = input['A']
-        input_B = input['B']
-        input_C = input['C']
-        input_A_Map=input['A_map']
-        input_B_Map=input['B_map']
-        pair = input['pair']
-
-        print('***************')
-        print(input_A.size())
-        print(input_B.size())
-        print(input_C.size())
-        print(input_A_Map.size())
-        print(input_B_Map.size())
-        print('***************')
-
-        if len(self.gpu_ids) > 0:
-            # input_A = input_A.cuda(self.gpu_ids[0], async=True)
-            # input_B = input_B.cuda(self.gpu_ids[0], async=True)
-            input_A = input_A.cuda(self.gpu_ids[0])
-            input_B = input_B.cuda(self.gpu_ids[0])
-        self.input_A = input_A
-        self.input_B = input_B
-        self.input_C = input_C
-
-        #self.input_A_Seg = self.read_t7(input_A_Seg)
-        #self.input_B_Seg = self.read_t7(input_B_Seg)
         self.input_A_Map = input_A_Map
         self.input_B_Map = input_B_Map
         self.input_A_Seg, self.input_B_Seg, self.input_SegNum = self.MakeLabelFromMap(self.input_A_Map,self.input_B_Map)
@@ -166,184 +83,6 @@ class ColorHistogram_Model(BaseModel):
         self.B_seg = self.input_B_Seg
         self.A_map = self.input_A_Map
         self.B_map = self.input_B_Map
-
-        # print ("[ColorHistogram] End-to-end color histogram")
-        # print('')
-
-    def backward_all(self):
-
-        self.real_A = self.real_A.float() 
-        self.real_B = self.real_B.float()
-        
-        if self.opt.network_H != 'image':
-            with torch.no_grad():
-                # Original
-                hist_A_real_ab = self.getHistogram2d_np(self.real_A, self.hist_ab)
-                hist_A_real_l =  self.getHistogram1d_np(self.real_A, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
-                hist_A_real = torch.cat((hist_A_real_ab,hist_A_real_l),1)
-
-                hist_B_real_ab =  self.getHistogram2d_np(self.real_B, self.hist_ab)
-                hist_B_real_l  =  self.getHistogram1d_np(self.real_B, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
-                hist_B_real = torch.cat((hist_B_real_ab,hist_B_real_l),1) 
-
-        elif self.opt.network_H == 'image':
-            # hist_A_real = F.upsample(self.real_A, size = (64, 64), mode = 'bilinear')
-            # hist_B_real = F.upsample(self.real_B, size = (64, 64), mode = 'bilinear')
-            hist_A_real = self.real_A
-            hist_B_real = self.real_B
-
-        # Network C
-        hist_A_feat  = self.netC_A(hist_A_real)
-        hist_B_feat  = self.netC_A(hist_B_real)
-        
-        #Target 
-        hist_A_feat_tile = hist_A_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-        hist_B_feat_tile = hist_B_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
-
-
-        # Switch Tensor
-
-        # Network Fake
-        #if random.random() > 0.5:
-        #iccv
-        if self.opt.mode in ['gsrt', 'rsrt', 'rtrt']:
-            self.final_result_A = hist_A_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
-            self.final_result_B = hist_B_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-            self.final_result_A_self = hist_A_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
-            self.final_result_B_self = hist_B_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-            for i in range(0,8):
-                seg_num_A = torch.sum(torch.sum(self.A_seg == i ,1),1)
-                seg_num_B = torch.sum(torch.sum(self.B_seg == i ,1),1)
-                if (seg_num_A > 0) and (seg_num_B > 0):
-                    self.segmentwise_tile_test( self.real_A, self.A_seg, self.B_seg, self.final_result_A , i)
-                    self.segmentwise_tile_test( self.real_B, self.B_seg, self.A_seg, self.final_result_B , i) # Seg_A == Seg_B
-                    self.segmentwise_tile_test( self.real_A, self.A_seg, self.A_seg, self.final_result_A_self, i)
-                    self.segmentwise_tile_test( self.real_B, self.B_seg, self.B_seg, self.final_result_B_self, i) # Seg_A == Seg_B
-
-            if self.opt.mode == 'gsrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(self.real_A,hist_A_feat_tile,self.final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(self.real_B,hist_B_feat_tile,self.final_result_A)
-            elif self.opt.mode == 'rsrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(self.real_A,self.final_result_A_self,self.final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(self.real_B,self.final_result_B_self,self.final_result_A)
-            elif self.opt.mode == 'rtrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(self.real_A,self.final_result_B_self,self.final_result_B_self)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(self.real_B,self.final_result_A_self,self.final_result_A_self)
-
-        elif self.opt.mode == 'gtgt':
-            fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(self.real_A,hist_B_feat_tile,hist_B_feat_tile)
-            fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(self.real_B,hist_A_feat_tile,hist_A_feat_tile)
-        elif self.opt.mode == 'gsgt':
-            fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(self.real_A,hist_A_feat_tile,hist_B_feat_tile)
-            fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(self.real_B,hist_B_feat_tile,hist_A_feat_tile)
-
-
-        # Netowkr Idt
-        _, _, _, _, fake_A_idt = self.netG_A(self.real_A,hist_A_feat_tile, hist_A_feat_tile)
-        _, _, _, _, fake_B_idt = self.netG_A(self.real_B,hist_B_feat_tile, hist_B_feat_tile)
-
-        # Visualize
-        #with torch.no_grad():
-
-        hist_A_real_ab_sps = self.getHistogram2d_conv(self.real_A, self.netHist_32)
-        hist_A_fake_ab_sps = self.getHistogram2d_conv(     fake_A, self.netHist_32)
-        hist_B_real_ab_sps = self.getHistogram2d_conv(self.real_B, self.netHist_32)
-        hist_B_fake_ab_sps = self.getHistogram2d_conv(     fake_B, self.netHist_32)
-
-        if self.pair == True:
-            # Loss_IMG
-            loss_sl =  self.criterionMSE(fake_B,self.real_B) * 1.0
-            loss_sl2 = self.criterionMSE(fake_A,self.real_A) *  1.0
-
-            loss_sl_B1 = self.criterionMSE(fake_B1, F.upsample(self.real_B, size = (fake_B1.size(2), fake_B1.size(3)), mode = 'bilinear') ) * 0.0
-            loss_sl_A1 = self.criterionMSE(fake_A1, F.upsample(self.real_A, size = (fake_A1.size(2), fake_A1.size(3)), mode = 'bilinear') ) * 0.0 # 'fake_A' may be equal to 'fake_A1'
-
-            loss_sl_B2 = self.criterionMSE(fake_B2, F.upsample(self.real_B, size = (fake_B2.size(2), fake_B2.size(3)), mode = 'bilinear') ) * 0.5
-            loss_sl_A2 = self.criterionMSE(fake_A2, F.upsample(self.real_A, size = (fake_A2.size(2), fake_A2.size(3)), mode = 'bilinear') ) * 0.5
-
-            loss_sl_B3 = self.criterionMSE(fake_B3, F.upsample(self.real_B, size = (fake_B3.size(2), fake_B3.size(3)), mode = 'bilinear') ) * 0.5
-            loss_sl_A3 = self.criterionMSE(fake_A3, F.upsample(self.real_A, size = (fake_A3.size(2), fake_A3.size(3)), mode = 'bilinear') ) * 0.5
-
-            loss_sl_B4 = self.criterionMSE(fake_B4, F.upsample(self.real_B, size = (fake_B4.size(2), fake_B4.size(3)), mode = 'bilinear') ) * 0.5
-            loss_sl_A4 = self.criterionMSE(fake_A4, F.upsample(self.real_A, size = (fake_A4.size(2), fake_A4.size(3)), mode = 'bilinear') ) * 0.5
-
-            loss_sl_idt  = self.criterionMSE(fake_A_idt,self.real_A) * 1.0
-            loss_sl_idt2 = self.criterionMSE(fake_B_idt,self.real_B) * 1.0
-
-        # Loss_HIST
-        loss_sl_hist = self.criterionMSE(hist_B_fake_ab_sps,hist_B_real_ab_sps.detach()) * 1.5
-        loss_sl_hist2 = self.criterionMSE(hist_A_fake_ab_sps,hist_A_real_ab_sps.detach()) * 1.5
-
-        # combined loss
-        loss_G = ( 
-                    loss_sl
-                    + loss_sl2
-
-                    + loss_sl_idt
-                    + loss_sl_idt2
-                    + loss_sl_hist
-                    + loss_sl_hist2
-                    + loss_sl_B1
-                    + loss_sl_A1
-                    + loss_sl_B2
-                    + loss_sl_A2
-                    + loss_sl_B3
-                    + loss_sl_A3
-                    + loss_sl_B4
-                    + loss_sl_A4
-                 )
-
-        loss_G.backward()
-
-        # Save Loss
-        self.loss_sl = loss_sl.item()
-        self.loss_sl2 = loss_sl2.item()
-        self.loss_sl_idt = loss_sl_idt.item()
-        self.loss_sl_idt2 = loss_sl_idt2.item()
-        self.loss_sl_hist = loss_sl_hist.item()
-        self.loss_sl_hist2 = loss_sl_hist2.item()
-
-        self.loss_sl_B1 = loss_sl_B1.item()
-        self.loss_sl_A1 = loss_sl_A1.item()
-        self.loss_sl_B2 = loss_sl_B2.item()
-        self.loss_sl_A2 = loss_sl_A2.item()
-        self.loss_sl_B3 = loss_sl_B3.item()
-        self.loss_sl_A3 = loss_sl_A3.item()
-        self.loss_sl_B4 = loss_sl_B4.item()
-        self.loss_sl_A4 = loss_sl_A4.item()
-
-        # Save IMG
-        self.fake_A = fake_A
-        self.fake_B = fake_B        
-        self.fake_B_idt = fake_B_idt
-        self.fake_A_idt = fake_A_idt
-        self.fake_B1 = fake_B1
-        self.fake_A1 = fake_A1
-        self.fake_B2 = fake_B2
-        self.fake_A2 = fake_A2
-        self.fake_B3 = fake_B3
-        self.fake_A3 = fake_A3
-        self.fake_B4 = fake_B4
-        self.fake_A4 = fake_A4
-
-        # self.fake_A = fake_A
-        # self.fake_B = fake_B.detach().cpu().numpy()        
-        # self.fake_B_idt = fake_B_idt.detach().cpu().numpy()
-        # self.fake_A_idt = fake_A_idt.detach().cpu().numpy()
-        # self.fake_B1 = fake_B1.detach().cpu().numpy()
-        # self.fake_A1 = fake_A1.detach().cpu().numpy()
-        # self.fake_B2 = fake_B2.detach().cpu().numpy()
-        # self.fake_A2 = fake_A2.detach().cpu().numpy()
-        # self.fake_B3 = fake_B3.detach().cpu().numpy()
-        # self.fake_A3 = fake_A3.detach().cpu().numpy()
-        # self.fake_B4 = fake_B4.detach().cpu().numpy()
-        # self.fake_A4 = fake_A4.detach().cpu().numpy()
-
-        # ups = nn.Upsample(scale_factor = 4 , mode = 'bilinear')
-        # self.real_A_hist = ups( hist_A_real_ab )
-        # self.real_B_hist = ups( hist_B_real_ab )
-        # self.fake_A_hist = ups( hist_A_fake_ab_sps )
-        # self.fake_B_hist = ups( hist_B_fake_ab_sps )
 
     def test(self):
         with torch.no_grad():
@@ -391,14 +130,6 @@ class ColorHistogram_Model(BaseModel):
             self.real_B = self.real_B.float()
             self.real_C = self.real_C.float()
 
-            print('********')
-            print('real_A: ', self.real_A.size())
-            print('real_B: ', self.real_B.size())
-            print('A_seg: ', self.A_seg.size())
-            print('B_seg: ', self.B_seg.size())
-            print('********')
-    
-    
             test_mode = 'semantic_replacement'
             # test_mode = 'stretch'
             # test_mode = 'L_equalize'
@@ -454,8 +185,8 @@ class ColorHistogram_Model(BaseModel):
                 # hist_B_real = self.real_B
     
             # Network C
-            hist_A_feat  = self.netC_A(hist_A_real)
-            hist_B_feat  = self.netC_A(hist_B_real)
+            hist_A_feat  = self.HEN(hist_A_real)
+            hist_B_feat  = self.HEN(hist_B_real)
             
             #Target 
             hist_A_feat_tile =    hist_A_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
@@ -491,24 +222,24 @@ class ColorHistogram_Model(BaseModel):
 
             # Network Fake
             if self.opt.mode == 'gsrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(pad_real_A, pad_hist_A_feat_tile, pad_final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(pad_real_B, pad_hist_B_feat_tile, pad_final_result_A)
+                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_final_result_B)
+                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_final_result_A)
             elif self.opt.mode == 'gsgt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(pad_real_A, pad_hist_A_feat_tile, pad_hist_B_feat_tile)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(pad_real_B, pad_hist_B_feat_tile, pad_hist_A_feat_tile)
+                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_hist_B_feat_tile)
+                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_hist_A_feat_tile)
             elif self.opt.mode == 'rsrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(pad_real_A, pad_final_result_A_self, pad_final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(pad_real_B, pad_final_result_B_self, pad_final_result_A)
+                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_final_result_A_self, pad_final_result_B)
+                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_final_result_B_self, pad_final_result_A)
             elif self.opt.mode == 'gtgt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(pad_real_A, pad_hist_B_feat_tile, pad_hist_B_feat_tile)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(pad_real_B, pad_hist_A_feat_tile, pad_hist_A_feat_tile)
+                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_hist_B_feat_tile, pad_hist_B_feat_tile)
+                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_hist_A_feat_tile, pad_hist_A_feat_tile)
             elif self.opt.mode == 'rtrt':
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.netG_A(pad_real_A, pad_final_result_B_self, pad_final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.netG_A(pad_real_B, pad_final_result_A_self, pad_final_result_A)
+                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_final_result_B_self, pad_final_result_B)
+                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_final_result_A_self, pad_final_result_A)
     
             # Netowkr Idt
-            _, _, _, _, fake_A_idt = self.netG_A(pad_real_A, pad_hist_A_feat_tile, pad_hist_A_feat_tile)
-            _, _, _, _, fake_B_idt = self.netG_A(pad_real_B, pad_hist_B_feat_tile, pad_hist_B_feat_tile)
+            _, _, _, _, fake_A_idt = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_hist_A_feat_tile)
+            _, _, _, _, fake_B_idt = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_hist_B_feat_tile)
     
     
             # Crop the pad
@@ -831,8 +562,8 @@ class ColorHistogram_Model(BaseModel):
     #     return ret_visuals
 
     def save(self, label):
-        self.save_network(self.netG_A, 'G_A', label, self.gpu_ids)
-        self.save_network(self.netC_A, 'C_A', label, self.gpu_ids)
+        self.save_network(self.IRN, 'G_A', label, self.gpu_ids)
+        self.save_network(self.HEN, 'C_A', label, self.gpu_ids)
 
 
 
@@ -938,7 +669,7 @@ class ColorHistogram_Model(BaseModel):
         # print('hist_cat: ', hist_cat.size())
 
         #Encode Each Histogram Tensor
-        hist_feat = self.netC_A(hist_cat)
+        hist_feat = self.HEN(hist_cat)
         # print('hist_feat: ', hist_feat.size())
 
         #Embeded to Final Tensor
@@ -954,7 +685,7 @@ class ColorHistogram_Model(BaseModel):
             hist_cat   = torch.cat((hist_2d,hist_1d),1)
 
         #Encode Tensor
-        hist_feat = self.netC_A(hist_cat)
+        hist_feat = self.HEN(hist_cat)
 
         #Embeded Tensor
         final_tensor[:,:,seg.squeeze(0)==segment_num] = hist_feat.repeat(1,1, final_tensor[:,:,seg.squeeze(0)==segment_num].size(2), 1).squeeze(0).permute(2,0,1)
@@ -1111,7 +842,7 @@ class ColorHistogram_Model(BaseModel):
             hist_cat   = torch.cat((hist_2d_ts_resize_crop_tensor_norm.unsqueeze(0).unsqueeze(0),hist_1d),1)
 
         #Encode Tensor
-        hist_feat = self.netC_A(hist_cat)
+        hist_feat = self.HEN(hist_cat)
 
         final_tensor[:,:,seg_src.squeeze(0).cuda()==1] = hist_feat.repeat(1,1, final_tensor[:,:,seg_src.squeeze(0).cuda()==1].size(2), 1).squeeze(0).permute(2,0,1)
 
