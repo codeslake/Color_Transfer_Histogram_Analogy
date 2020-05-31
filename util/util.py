@@ -11,11 +11,9 @@ from skimage import color
 import fnmatch
 
 def LAB2RGB(I):
-    # print(I)
     l = I[:, :, 0] / 255.0 * 100.0
     a = I[:, :, 1] / 255.0 * (98.2330538631 + 86.1830297444) - 86.1830297444
     b = I[:, :, 2] / 255.0 * (94.4781222765 + 107.857300207) - 107.857300207
-    # print(np.dstack([l, a, b]))
 
     rgb = color.lab2rgb(np.dstack([l, a, b]).astype(np.float64))
     return rgb
@@ -25,7 +23,6 @@ def HSV2RGB(I):
     h = I[:, :, 0] / 255.0 * 360.0
     s = I[:, :, 1] / 255.0 * 100.0
     v = I[:, :, 2] / 255.0 * 100.0
-    # print(np.dstack([l, a, b]))
 
     hsv = color.hsv2rgb(np.dstack([h, s, v]).astype(np.float64))*255
     return hsv
@@ -34,12 +31,10 @@ def HSV2RGB(I):
 # |imtype|: the desired type of the converted numpy array
 
 def tensor2im(image_tensor,img_type,imtype=np.uint8):
-    # print('1. ', image_tensor.size())
     image_numpy = image_tensor.detach().cpu().numpy()
     if image_numpy.shape[1] == 1:
         image_numpy = np.tile(image_numpy, (1, 3, 1, 1))
     image_numpy = ((np.transpose(image_numpy, (0, 2, 3, 1)) * 0.5) + 0.5) * 255.0 #-1~1  => 
-    # print('save: ', img_type)
 
     # Additional
     image_numpy = image_numpy[0]
@@ -58,7 +53,6 @@ def tensor2im(image_tensor,img_type,imtype=np.uint8):
 
     # image = torch.from_numpy(image_numpy.transpose(2,0,1)).byte().cuda()
     image = torch.from_numpy(image_numpy.transpose(2,0,1)).cuda()
-    # print(image.size())
 
     return image
 
@@ -71,8 +65,6 @@ def diagnose_network(net, name='network'):
             count += 1
     if count > 0:
         mean = mean / count
-    print(name)
-    print(mean)
 
 
 def save_image(image_numpy, image_path):

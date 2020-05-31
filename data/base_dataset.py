@@ -263,11 +263,9 @@ def RGB2LAB(I):
     return numpy.dstack([l, a, b])
 
 def LAB2RGB(I):
-    # print(I)
     l = I[:, :, 0] / 255.0 * 100.0
     a = I[:, :, 1] / 255.0 * (98.2330538631 + 86.1830297444) - 86.1830297444
     b = I[:, :, 2] / 255.0 * (94.4781222765 + 107.857300207) - 107.857300207
-    # print(np.dstack([l, a, b]))
 
     rgb = color.lab2rgb(numpy.dstack([l, a, b]).astype(numpy.float64))
     return rgb
@@ -342,63 +340,18 @@ def RGB2HSV2RGB(I,mode,start_time):
 
     this_time=time.time()
     elapsed_time=this_time-start_time
-    #print(this_time-start_time)
 
 
     if mode == "original":
         alpha = 1
     elif mode == "random":
-        #adhoc = (elapsed_time*10000)%10
-        #if adhoc >10:
-        #    alpha = 0.1
-        #else:
-        #    alpha = ((elapsed_time*1000)%1000)*2/1000
-        
-        #alpha = ((elapsed_time*1000)%1000)*1/1000 # below 1
-
-
-        ######ORIGINAL
-        #alpha = ((elapsed_time*1000)%1000)*1.3/1000 # above 1
-
-        #if alpha<0.1:
-        #    alpha=0.1
-
-        #if alpha>1.0: # to sustain identity loss
-        #    alpha=1
-
         ###### Gray Added
         alpha = ((elapsed_time*1000)%1000)*(1.5)/1000 # above 1
-
-        #if alpha>1.0 and alpha < 2.0:
-        #    alpha=1.0
-        #if alpha>=2.0:
-        #    alpha=0.0
-
-        #if alpha>1.0:
-        #    alpha = 1.0
-        #if alpha<0.5:
-        #    alpha = 0.4
 
         if alpha > 1.0:
             alpha = 1.0
         if alpha <0.2:
             alpha = 0.2
-
-
-
-
-
-
-        #if alpha>0.99  and alpha<1.4:
-        #    alpha=0.1        
-
-        #if alpha>0.99  and alpha<1.4:
-        #    alpha=0.1
-
-        #if alpha<3.0:
-        #    alpha=3.0
-
-
 
     elif mode == "gray":
         alpha = 0.1
@@ -406,8 +359,6 @@ def RGB2HSV2RGB(I,mode,start_time):
         alpha = 1/(1+exp(0.0003*(elapsed_time-20000)))*0.9 + 0.1
     else:
         alpha = 1
-
-    print("alpha:"+mode+":"+str(alpha))
 
     hsv = color.rgb2hsv(I)
     h = (hsv[:, :, 0] / 360.0 ) * 255.0

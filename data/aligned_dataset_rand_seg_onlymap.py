@@ -1,6 +1,6 @@
 import os.path
 import torchvision.transforms as transforms
-from data.base_dataset import BaseDataset, get_transform, get_transform_lab
+from data.base_dataset import BaseDataset, get_transform, get_transform_lab, no_transform
 from data.image_folder import make_dataset
 from PIL import Image
 import random
@@ -12,17 +12,10 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
         self.root = opt.dataroot
         self.img_type = opt.img_type
 
-        self.dir_A =   os.path.join(opt.dataroot, opt.phase + '{}_1'.format(opt.test_dir))
-        self.dir_B =   os.path.join(opt.dataroot, opt.phase + '{}_2'.format(opt.test_dir))
-        self.dir_A_Map = os.path.join(opt.dataroot, opt.phase + '{}_1'.format(opt.test_dir))
-        self.dir_B_Map = os.path.join(opt.dataroot, opt.phase + '{}_2'.format(opt.test_dir))
-
-        ## ablation
-        self.dir_A = os.path.join(opt.dataroot, opt.phase + 'A')
-        self.dir_B = os.path.join(opt.dataroot, opt.phase + 'B_exB_resized')
-        self.dir_A_Map=os.path.join(opt.dataroot, opt.phase + 'A_segmap')
-        self.dir_B_Map=os.path.join(opt.dataroot, opt.phase + 'A_segmap')
-        ##
+        self.dir_A =   os.path.join(opt.dataroot, 'input')
+        self.dir_B =   os.path.join(opt.dataroot, 'target')
+        self.dir_A_Map = os.path.join(opt.dataroot, 'seg_in')
+        self.dir_B_Map = os.path.join(opt.dataroot, 'seg_tar')
 
         self.A_paths = make_dataset(self.dir_A)
         self.A_paths = sorted(self.A_paths)
@@ -40,6 +33,8 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
         self.B_size = len(self.B_paths)
 
         self.transform_type = get_transform_lab(opt)
+        self.transform_no = no_transform(opt)
+
 
     def __getitem__(self, index):
         A_path = self.A_paths[index % self.A_size]
@@ -53,8 +48,12 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
         A = self.transform_type(A_img)
         B = self.transform_type(B_img)
 
-        A_map = np.zeros_like(np.array(A))
-        B_map = np.zeros_like(np.array(B))
+        if self.opt.is_SR is False:
+            A_map = np.zeros_like(np.array(A))
+            B_map = np.zeros_like(np.array(B))
+        else:
+            A_map=self.transform_no(Image.open(A_path_map))
+            B_map=self.transform_no(Image.open(B_path_map))
         
         return {'A': A, 'B': B, 'A_map': A_map, 'B_map': B_map,
                 'A_paths': A_path, 'B_paths': B_path}

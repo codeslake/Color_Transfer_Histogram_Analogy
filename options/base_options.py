@@ -21,7 +21,6 @@ class BaseOptions():
         self.parser.add_argument('--n_layers_D', type=int, default=3, help='only used if which_model_netD==n_layers')
         self.parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         self.parser.add_argument('--name', type=str, default='experiment_name', help='name of the experiment. It decides where to store samples and models')
-        self.parser.add_argument('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single]')
         self.parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. cycle_gan, pix2pix, test')
         self.parser.add_argument('--which_direction', type=str, default='AtoB', help='AtoB or BtoA')
         self.parser.add_argument('--nThreads', default=0, type=int, help='# threads for loading data')
@@ -34,16 +33,17 @@ class BaseOptions():
         self.parser.add_argument('--display_id', type=int, default=1, help='window id of the web display')
         self.parser.add_argument('--display_env', type=str, default='main', help='Environment name of the web display')
         self.parser.add_argument('--display_port', type=int, default=6005, help='visdom port of the web display')
-        self.parser.add_argument('--no_dropout', action='store_true', help='no dropout for the generator')
+        self.parser.add_argument('--no_dropout', action='store_false', help='no dropout for the generator')
         self.parser.add_argument('--max_dataset_size', type=int, default=float("inf"), help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         self.parser.add_argument('--resize_or_crop', type=str, default='resize_and_crop', help='scaling and cropping of images at load time [resize_and_crop|crop|scale_width|scale_width_and_crop]')
         self.parser.add_argument('--no_flip', action='store_true', help='if specified, do not flip the images for data augmentation')
         self.parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal|xavier|kaiming|orthogonal]')
-        self.parser.add_argument('--img_type', type=str, default='rgb', help='Environment name of the web display')
+        self.parser.add_argument('--img_type', type=str, default='lab', help='Environment name of the web display')
         self.parser.add_argument('--pair_ratio', type=float, default = 0.0, help='Ratio of Pair data')
         self.parser.add_argument('--mode', type=str, default='gsgt', help='gsgt, gsrt, rsrt')
         self.parser.add_argument('--test_dir', type=str, default='1', help='1,2,3,4,5')
         self.parser.add_argument('--is_psnr', action='store_true', help='1,2,3,4,5')
+        self.parser.add_argument('--is_SR', action='store_false', help='1,2,3,4,5')
 
         self.initialized = True
 
@@ -65,10 +65,5 @@ class BaseOptions():
             torch.cuda.set_device(self.opt.gpu_ids[0])
 
         args = vars(self.opt)
-
-        print('------------ Options -------------')
-        for k, v in sorted(args.items()):
-            print('%s: %s' % (str(k), str(v)))
-        print('-------------- End ----------------')
 
         return self.opt

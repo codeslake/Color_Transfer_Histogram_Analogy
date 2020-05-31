@@ -3,14 +3,10 @@ from data.base_data_loader import BaseDataLoader
 
 
 def CreateDataset(opt):
-    dataset = None
-    if opt.dataset_mode == 'aligned_rand_seg_onlymap':
-        from data.aligned_dataset_rand_seg_onlymap import AlignedDataset_Rand_Seg_onlymap
-        dataset = AlignedDataset_Rand_Seg_onlymap()
-    else:
-        raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
-
+    from data.aligned_dataset_rand_seg_onlymap import AlignedDataset_Rand_Seg_onlymap
+    dataset = AlignedDataset_Rand_Seg_onlymap()
     dataset.initialize(opt)
+    
     return dataset
 
 
