@@ -33,5 +33,4 @@ for i, data in enumerate(dataset):
     visuals = model.get_current_visuals()
     print('%04d: process image... ' % (i))
     for key, val in visuals.items():
-        print(key, ': ', val.min(), ', ', val.max())
         vutils.save_image(val, '{}/{}_{}.png'.format(summary_dir, i, key), nrow=1, padding = 0, normalize = False)

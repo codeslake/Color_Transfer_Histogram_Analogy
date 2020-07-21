@@ -34,6 +34,8 @@ class ColorHistogram_Model(BaseModel):
         self.hist_l = opt.l_bin
         self.hist_ab = opt.ab_bin
         self.img_type = opt.img_type
+        self.pad = 30
+        self.reppad = nn.ReplicationPad2d(self.pad)
 
         self.IRN = networks.IRN(3, 3, opt.ngf, opt.network, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids)
         self.HEN = networks.HEN((self.hist_l+1), 64, opt.ngf, opt.network_H, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids).cuda()
@@ -66,63 +68,60 @@ class ColorHistogram_Model(BaseModel):
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
     
     def forward(self):
-        self.real_A = self.input_A
-        self.real_B = self.input_B
+        self.inp = self.input_A
+        self.tar = self.input_B
         self.A_seg = self.input_A_Seg
         self.B_seg = self.input_B_Seg
 
     def test(self):
         with torch.no_grad():
 
-            self.real_A = Variable(self.input_A)
-            self.real_B = Variable(self.input_B)
+            self.inp = Variable(self.input_A)
+            self.tar = Variable(self.input_B)
     
             self.A_seg = Variable(self.input_A_Seg)
             self.B_seg = Variable(self.input_B_Seg)
             self.A_map = Variable(self.input_A_Map)
 
             # max 700 px with aspect ratio
-            if (self.real_A.size(2)>700) or (self.real_A.size(3)>700):
-                aspect_ratio = self.real_A.size(2) / self.real_A.size(3)
-                if (self.real_A.size(2) > self.real_A.size(3)):
-                    self.real_A = F.upsample(self.real_A , size = ( 700 ,  int(700 / aspect_ratio)), mode = 'bilinear')
+            if (self.inp.size(2)>700) or (self.inp.size(3)>700):
+                aspect_ratio = self.inp.size(2) / self.inp.size(3)
+                if (self.inp.size(2) > self.inp.size(3)):
+                    self.inp = F.upsample(self.inp , size = ( 700 ,  int(700 / aspect_ratio)), mode = 'bilinear')
                 else:
-                    self.real_A = F.upsample(self.real_A , size = ( int(700 * aspect_ratio),  700 ), mode = 'bilinear')
+                    self.inp = F.upsample(self.inp , size = ( int(700 * aspect_ratio),  700 ), mode = 'bilinear')
             # max 700 px with aspect ratio
-            if (self.real_B.size(2)>700) or (self.real_B.size(3)>700):
-                aspect_ratio = self.real_B.size(2) / self.real_B.size(3)
-                if (self.real_B.size(2) > self.real_B.size(3)):
-                    self.real_B = F.upsample(self.real_B , size = ( 700 ,  int(700 / aspect_ratio)), mode = 'bilinear')
+            if (self.tar.size(2)>700) or (self.tar.size(3)>700):
+                aspect_ratio = self.tar.size(2) / self.tar.size(3)
+                if (self.tar.size(2) > self.tar.size(3)):
+                    self.tar = F.upsample(self.tar , size = ( 700 ,  int(700 / aspect_ratio)), mode = 'bilinear')
                 else:
-                    self.real_B = F.upsample(self.real_B , size = ( int(700 * aspect_ratio),  700 ), mode = 'bilinear')
+                    self.tar = F.upsample(self.tar , size = ( int(700 * aspect_ratio),  700 ), mode = 'bilinear')
 
             # In case of mis-alignment
-            self.A_seg = F.upsample(self.A_seg.unsqueeze(0).float() , size = (self.real_A.size(2),  self.real_A.size(3)),  mode = 'bilinear').squeeze(0).long()
-            self.B_seg = F.upsample(self.B_seg.unsqueeze(0).float() , size = (self.real_B.size(2),  self.real_B.size(3)),  mode = 'bilinear').squeeze(0).long()
+            self.A_seg = F.upsample(self.A_seg.unsqueeze(0).float() , size = (self.inp.size(2),  self.inp.size(3)),  mode = 'bilinear').squeeze(0).long()
+            self.B_seg = F.upsample(self.B_seg.unsqueeze(0).float() , size = (self.tar.size(2),  self.tar.size(3)),  mode = 'bilinear').squeeze(0).long()
 
-            self.real_A = self.real_A.float()
-            self.real_B = self.real_B.float()
+            self.inp = self.inp.float()
+            self.tar = self.tar.float()
 
 
             ## HEN ##
             with torch.no_grad():
-                hist_A_real_ab = self.getHistogram2d_np(self.real_A, self.hist_ab)
-                hist_A_real_l =  self.getHistogram1d_np(self.real_A, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
-                hist_A_real = torch.cat((hist_A_real_ab,hist_A_real_l),1)
+                hist_inp_ab = self.getHistogram2d_np(self.inp, self.hist_ab)
+                hist_inp_l =  self.getHistogram1d_np(self.inp, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
+                hist_inp = torch.cat((hist_inp_ab,hist_inp_l),1)
     
-                hist_B_real_ab =  self.getHistogram2d_np(self.real_B, self.hist_ab)
-                hist_B_real_l  =  self.getHistogram1d_np(self.real_B, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
-                hist_B_real = torch.cat((hist_B_real_ab,hist_B_real_l),1) 
+                hist_tar_ab =  self.getHistogram2d_np(self.tar, self.hist_ab)
+                hist_tar_l  =  self.getHistogram1d_np(self.tar, self.hist_l).repeat(1,1,self.hist_ab,self.hist_ab)
+                hist_tar = torch.cat((hist_tar_ab,hist_tar_l),1) 
 
-                hist_A_feat  = self.HEN(hist_A_real)
-                hist_B_feat  = self.HEN(hist_B_real)
+                hist_inp_feat  = self.HEN(hist_inp)
+                hist_tar_feat  = self.HEN(hist_tar)
             
-                hist_A_feat_tile =    hist_A_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-                hist_B_feat_tile =    hist_B_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
-                self.final_result_A = hist_A_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
-                self.final_result_B = hist_B_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-                self.final_result_A_self = hist_A_feat.repeat(1,1,self.real_A.size(2),self.real_A.size(3))
-                self.final_result_B_self = hist_B_feat.repeat(1,1,self.real_B.size(2),self.real_B.size(3))
+                hist_inp_feat_tile =    hist_inp_feat.repeat(1,1,self.inp.size(2),self.inp.size(3))
+                hist_tar_feat_tile =    hist_tar_feat.repeat(1,1,self.tar.size(2),self.tar.size(3))
+                self.final_result_tar = hist_tar_feat.repeat(1,1,self.inp.size(2),self.inp.size(3))
 
 
             if self.opt.is_SR:
@@ -130,116 +129,34 @@ class ColorHistogram_Model(BaseModel):
                     seg_num_A = torch.sum(torch.sum(self.A_seg == i ,1),1)
                     seg_num_B = torch.sum(torch.sum(self.B_seg == i ,1),1)
                     if (seg_num_A > 0) and (seg_num_B > 0):
-                        self.segmentwise_tile( self.real_A, self.A_seg, self.B_seg, self.final_result_A, i)
-                        self.segmentwise_tile( self.real_B, self.B_seg, self.A_seg, self.final_result_B, i)
-                        self.segmentwise_tile( self.real_A, self.A_seg, self.A_seg, self.final_result_A_self, i)
-                        self.segmentwise_tile( self.real_B, self.B_seg, self.B_seg, self.final_result_B_self, i)
+                        self.segmentwise_tile( self.tar, self.B_seg, self.A_seg, self.final_result_tar, i)
 
             # Padding
-            p = 30
-            reppad = nn.ReplicationPad2d(p)
-
-            pad_real_A          = reppad(self.real_A)
-            pad_real_B          = reppad(self.real_B)
-            pad_hist_A_feat_tile= reppad(hist_A_feat_tile)
-            pad_hist_B_feat_tile= reppad(hist_B_feat_tile)
-            pad_final_result_A  = reppad(self.final_result_A)
-            pad_final_result_B  = reppad(self.final_result_B)
-            pad_final_result_A_self  = reppad(self.final_result_A_self)
-            pad_final_result_B_self  = reppad(self.final_result_B_self)
+            self.inp   = self.reppad(self.inp)
+            self.inp_H = self.reppad(hist_inp_feat_tile)
+            self.tar_H = self.reppad(hist_tar_feat_tile)
 
             # Network Fake
             if self.opt.is_SR:
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_final_result_B)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_final_result_A)
+                self.tar_H_SR  = self.reppad(self.final_result_tar)
+                _, _, _, _, out = self.IRN(self.inp, self.inp_H , self.tar_H_SR)
             else:
-                fake_B1, fake_B2, fake_B3, fake_B4, fake_B = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_hist_B_feat_tile)
-                fake_A1, fake_A2, fake_A3, fake_A4, fake_A = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_hist_A_feat_tile)
-    
-            ## IRN ## 
-            _, _, _, _, fake_A_idt = self.IRN(pad_real_A, pad_hist_A_feat_tile, pad_hist_A_feat_tile)
-            _, _, _, _, fake_B_idt = self.IRN(pad_real_B, pad_hist_B_feat_tile, pad_hist_B_feat_tile)
-    
-            # Crop the pad
-            fake_A     =      fake_A[:,:,p:(p+self.real_B.size(2)),p:(p+self.real_B.size(3))]
-            fake_B     =      fake_B[:,:,p:(p+self.real_A.size(2)),p:(p+self.real_A.size(3))]
-            fake_A_idt =  fake_A_idt[:,:,p:(p+self.real_A.size(2)),p:(p+self.real_A.size(3))]
-            fake_B_idt =  fake_B_idt[:,:,p:(p+self.real_B.size(2)),p:(p+self.real_B.size(3))]
+                _, _, _, _, out = self.IRN(self.inp, self.inp_H , self.tar_H )
 
-            # Get Histogram
-            bin_size = self.opt.ab_bin
-            hist_A_fake_ab = self.getHistogram2d_np(fake_A, bin_size)
-            hist_B_fake_ab = self.getHistogram2d_np(fake_B, bin_size)
-            hist_A_real_ab = self.getHistogram2d_np(self.real_A, bin_size)
-            hist_B_real_ab = self.getHistogram2d_np(self.real_B, bin_size)
-
-            self.real_A = self.real_A
-            self.real_B = self.real_B
-            self.fake_A = fake_A
-            self.fake_B = fake_B
-            self.fake_A_idt = fake_A_idt
-            self.fake_B_idt = fake_B_idt
-    
-            ups = nn.Upsample(scale_factor = 4 , mode = 'bilinear')
-            lab_spectrum = cv2.cvtColor(cv2.imread('./ab_space_low.png', cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-            lab_spectrum= cv2.cvtColor(lab_spectrum, cv2.COLOR_RGB2LAB)
-            lab_spectrum= cv2.cvtColor(lab_spectrum.astype(np.uint8), cv2.COLOR_LAB2RGB)
-            lab_spectrum = cv2.resize(lab_spectrum, (bin_size, bin_size)).astype(np.float32) / 255.
-
-            hist_A_real_ab = hist_A_real_ab.detach().cpu().numpy()[0].transpose(1, 2, 0)
-            hist_A_real_ab = hist_A_real_ab * 1.1
-            hist_A_real_ab = hist_A_real_ab / hist_A_real_ab.max()
-            hist_A_real_ab = np.repeat(hist_A_real_ab, 3, axis = 2)
-            hist_A_real_ab = hist_A_real_ab * lab_spectrum
-            hist_A_real_ab = np.expand_dims(hist_A_real_ab, axis = 0)
-            hist_A_real_ab = hist_A_real_ab.transpose(0, 3, 1, 2)
-            self.real_A_hist = ups(torch.FloatTensor(hist_A_real_ab).cuda()) * 2 - 1
-
-            hist_B_real_ab = hist_B_real_ab.detach().cpu().numpy()[0].transpose(1, 2, 0)
-            hist_B_real_ab = hist_B_real_ab * 1.1
-            hist_B_real_ab = hist_B_real_ab / hist_B_real_ab.max()
-            hist_B_real_ab = np.repeat(hist_B_real_ab, 3, axis = 2)
-            hist_B_real_ab = hist_B_real_ab * lab_spectrum
-            hist_B_real_ab = np.expand_dims(hist_B_real_ab, axis = 0)
-            hist_B_real_ab = hist_B_real_ab.transpose(0, 3, 1, 2)
-            self.real_B_hist = ups(torch.FloatTensor(hist_B_real_ab).cuda()) * 2 - 1
-
-            hist_B_fake_ab = hist_B_fake_ab.detach().cpu().numpy()[0].transpose(1, 2, 0)
-            hist_B_fake_ab = hist_B_fake_ab * 1.1
-            hist_B_fake_ab = hist_B_fake_ab / hist_B_fake_ab.max()
-            hist_B_fake_ab = np.repeat(hist_B_fake_ab, 3, axis = 2)
-            hist_B_fake_ab = hist_B_fake_ab * lab_spectrum
-            hist_B_fake_ab = np.expand_dims(hist_B_fake_ab, axis = 0)
-            hist_B_fake_ab = hist_B_fake_ab.transpose(0, 3, 1, 2)
-            self.fake_B_hist = ups(torch.FloatTensor(hist_B_fake_ab).cuda()) * 2 - 1
+            self.inp = self.inp[:,:,self.pad:(self.inp.size(2)-2*self.pad),self.pad:(self.inp.size(3)-2*self.pad)]
+            self.tar = self.tar[:,:,self.pad:(self.tar.size(2)-2*self.pad),self.pad:(self.tar.size(3)-2*self.pad)]
+            self.out = out[:,:,self.pad:(out.size(2)-2*self.pad),self.pad:(out.size(3)-2*self.pad)]
 
 
     def get_current_visuals(self):
-        real_A = util.tensor2im(self.real_A,self.img_type)
-        real_B = util.tensor2im(self.real_B,self.img_type)
-        fake_A = util.tensor2im(self.fake_A,self.img_type)
-        fake_B = util.tensor2im(self.fake_B,self.img_type)
-        fake_A_idt = util.tensor2im(self.fake_A_idt,self.img_type)
-        fake_B_idt = util.tensor2im(self.fake_B_idt,self.img_type)
-
-        real_A_hist = util.tensor2im(self.real_A_hist,'rgb') 
-        real_B_hist = util.tensor2im(self.real_B_hist,'rgb')
-        fake_B_hist = util.tensor2im(self.fake_B_hist,'rgb')
-
-        img_A_map = util.tensor2im(self.input_A_Map,'rgb')
-        img_B_map = util.tensor2im(self.input_B_Map,'rgb')
-
-        ret_visuals = OrderedDict([('01_input', real_A),
-                                   ('02_target', real_B),
-                                   ('03_fake_B', fake_B),
-                                   ('04_A_seg', img_A_map),
-                                   ('05_B_seg', img_B_map),
-         ])
+        ret_visuals = OrderedDict([('01_input', util.tensor2im(self.inp,self.img_type)),
+                                   ('02_target', util.tensor2im(self.tar,self.img_type)),
+                                   ('03_output', util.tensor2im(self.out,self.img_type))])
 
         return ret_visuals
 
-
-    def getHistogram2d_np(self, img_torch, num_bin): # AB space # num_bin = self.hist_ab = 64
+###########################################################################################################################
+    def getHistogram2d_np(self, img_torch, num_bin):
         arr = img_torch.detach().cpu().numpy()
 
         # Exclude Zeros and Make value 0 ~ 1
@@ -267,7 +184,7 @@ class ColorHistogram_Model(BaseModel):
         total_num = sum(sum(H_torch.squeeze(0).squeeze(0))) # 256 * 256 => same value as arr[0][0].ravel()[np.flatnonzero(arr[0][0])].shape
         H_torch = H_torch / total_num
 
-        return H_torch #1/1/64/64
+        return H_torch
 
     def getHistogram1d_np(self,img_torch, num_bin): # L space # Idon't know why but they(np, conv) are not exactly same
         # Preprocess
