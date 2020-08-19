@@ -30,14 +30,15 @@ All material related to our paper is available via the following links:
 
 
 ## Testing the network
-To test the network, type
+1. Download pretrained weights for IRN and HEN from [here](https://drive.google.com/file/d/1Xl8cXmhlD1DjaYNcroRLMjYR3C9QplNs/view?usp=sharing).
+Then, place the checkpoint under `./checkpoints` (one may change the offset in `./options/base_options.py`).
+
+2. To test the network, type
 ```bash
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 ```
 
 ## Using pre-trained networks
-Download pretrained weights for IRN and HEN from [here](https://drive.google.com/file/d/1Xl8cXmhlD1DjaYNcroRLMjYR3C9QplNs/view?usp=sharing).
-Place the file under `./checkpoints` (one may change the offset in `./options/base_options.py`).
 
 ## BIBTEX
 If you find this code useful, please consider citing:
