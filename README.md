@@ -31,9 +31,11 @@ All material related to our paper is available via the following links:
 
 ## Testing the network
 1. Download pretrained weights for IRN and HEN from [here](https://drive.google.com/file/d/1Xl8cXmhlD1DjaYNcroRLMjYR3C9QplNs/view?usp=sharing).
-Then, place the checkpoint under `./checkpoints` (one may change the offset in `./options/base_options.py`).
+Then, place checkpoints under `./checkpoints` (one may change the offset in `./options/base_options.py`).
 
-2. To test the network, type
+2. Place your images under `./test`. Input images and their segment map should be placed under `./test/input` and `./test/seg_in`, respectively. Place target images and their segment map under `./test/target` and `./test/seg_tar`. 
+
+3. To test the network, type
 ```bash
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 ```
