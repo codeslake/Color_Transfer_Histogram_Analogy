@@ -5,7 +5,6 @@ from data.data_loader import CreateDataLoader
 from models.models import create_model
 import torchvision.utils as vutils
 from util import util
-from math import log10
 
 
 opt = TestOptions().parse()
