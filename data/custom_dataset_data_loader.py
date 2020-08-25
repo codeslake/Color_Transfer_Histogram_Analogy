@@ -6,7 +6,7 @@ def CreateDataset(opt):
     from data.aligned_dataset_rand_seg_onlymap import AlignedDataset_Rand_Seg_onlymap
     dataset = AlignedDataset_Rand_Seg_onlymap()
     dataset.initialize(opt)
-    
+
     return dataset
 
 
