@@ -16,7 +16,7 @@ class AlignedDataset_Test(BaseDataset):
         self.A_paths = make_dataset(self.dir_A)
 
         self.A_paths = sorted(self.A_paths)
-        
+
         self.A_size = len(self.A_paths)
 
         self.transform_no = no_transform(opt)
@@ -24,7 +24,7 @@ class AlignedDataset_Test(BaseDataset):
 
     def __getitem__(self, index):
         A_path = self.A_paths[index % self.A_size]
-        
+
 
         A_img = Image.open(A_path).convert('RGB')
         A = self.transform_no(A_img)

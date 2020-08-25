@@ -28,13 +28,12 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
 
         self.B_paths_map = make_dataset(self.dir_B_Map)
         self.B_paths_map = sorted(self.B_paths_map)
-        
+
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
 
         self.transform_type = get_transform_lab(opt)
         self.transform_no = no_transform(opt)
-
 
     def __getitem__(self, index):
         A_path = self.A_paths[index % self.A_size]
@@ -54,7 +53,7 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
         else:
             A_map=self.transform_no(Image.open(A_path_map))
             B_map=self.transform_no(Image.open(B_path_map))
-        
+
         return {'A': A, 'B': B, 'A_map': A_map, 'B_map': B_map,
                 'A_paths': A_path, 'B_paths': B_path}
 
