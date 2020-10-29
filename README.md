@@ -46,12 +46,14 @@ python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 If you find this code useful, please consider citing:
 
 ```
-@InProceedings{Lee_2020_VC,
-author = {Lee, Junyong and Son, Hyeongseok and Lee, Gunhee and Lee, Jonghyeop and Cho, Sunghyun and Lee, Seungyong},
-title = {Deep Color Transfer using Histogram Analogy},
-booktitle = {The Visual Computer},
-month = {Aug},
-year = {2020}
+@article{Lee_2020_CTHA,
+  author = {Lee, Junyong and Son, Hyeongseok and Lee, Gunhee and Lee, Jonghyeop and Cho, Sunghyun and Lee, Seungyong},
+  title = {Deep Color Transfer using Histogram Analogy},
+  journal = {The Visual Computer},
+  volume = {36},
+  number = {10},
+  pages = {2129--2143},
+  year = 2020,
 }
 ```
 
