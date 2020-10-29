@@ -9,7 +9,7 @@
 
 This repository contains the official PyTorch implementation of the following paper:
 
-> **Deep Color Transfer using Historgram Analogy**<br>
+> **Deep Color Transfer using Histogram Analogy**<br>
 > Junyong Lee (POSTECH), Hyeongseok Son (POSTECH), Gunhee Lee (NCSoft), Jonghyeop Lee (POSTECH), Sunghyun Cho (POSTECH) Seungyong Lee (POSTECH)
 > 
 > http://cg.postech.ac.kr/papers/2020_CGI_JY.pdf
