@@ -39,6 +39,10 @@ Then, place checkpoints under `./checkpoints` (one may change the offset in `./o
 ```bash
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 ```
+e.g., `python test.py --dataroot test --checkpoints_dir checkpoints`
+
+To turn of sementaic replacement option, add `--is_SR` option.
+e.g., `python test.py --dataroot test --checkpoints_dir checkpoints --is_SR`
 
 ## Using pre-trained networks
 
