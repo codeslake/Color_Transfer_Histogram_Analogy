@@ -5,7 +5,7 @@
 ![License CC BY-NC](https://img.shields.io/badge/license-GNU_AGPv3-green.svg?style=plastic)
 
 ![Teaser image](./assets/figure.jpg)
-**Picture:** *Color transfer results on various source and reference image pairs. For visualization, the reference image is cropped to make a same size with other images.*
+**Figure:** *Color transfer results on various source and reference image pairs. For visualization, the reference image is cropped to make a same size with other images.*
 
 This repository contains the official PyTorch implementation of the following paper:
 
@@ -13,7 +13,6 @@ This repository contains the official PyTorch implementation of the following pa
 > Junyong Lee, Hyeongseok Son, Gunhee Lee, Jonghyeop Lee, Sunghyun Cho and Seungyong Lee, CGI2020
 
 If you find this code useful, please consider citing:
-
 ```
 @article{Lee_2020_CTHA,
   author = {Lee, Junyong and Son, Hyeongseok and Lee, Gunhee and Lee, Jonghyeop and Cho, Sunghyun and Lee, Seungyong},
