@@ -38,8 +38,9 @@ class AlignedDataset_Rand_Seg_onlymap(BaseDataset):
     def __getitem__(self, index):
         A_path = self.A_paths[index % self.A_size]
         B_path = self.B_paths[index % self.B_size]
-        A_path_map = self.A_paths_map[index % self.A_size]
-        B_path_map = self.B_paths_map[index % self.B_size]
+        if self.opt.is_SR is True:
+            A_path_map = self.A_paths_map[index % self.A_size]
+            B_path_map = self.B_paths_map[index % self.B_size]
 
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
