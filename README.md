@@ -45,8 +45,6 @@ python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR`
 ```
 
-## Using pre-trained networks
-
 ## BIBTEX
 If you find this code useful, please consider citing:
 
