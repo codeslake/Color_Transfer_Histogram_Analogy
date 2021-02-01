@@ -42,7 +42,7 @@ python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 ```
 4. To turn of *sementaic replacement*, add `--is_SR`.
 ```bash
-python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR`
+python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR
 ```
 
 ## BIBTEX
