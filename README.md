@@ -59,12 +59,12 @@ python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_
 ## License ##
 This software is being made available under the terms in the [LICENSE](LICENSE) file.
 
-Any exemptions to these terms requires a license from the Pohang University of Science and Technology.
+Any exemptions to these terms require a license from the Pohang University of Science and Technology.
 
 ## About Coupe Project ##
-Project ‘COUPE’ aims to develop software that evaluates and improves the quality of images and videos based on big visual data. To achieve the goal, we extract sharpness, color, composition features from images and develop technologies for restoring and improving by using it. In addition,ersonalization technology through userreference analysis is under study.  
+Project ‘COUPE’ aims to develop software that evaluates and improves the quality of images and videos based on big visual data. To achieve the goal, we extract sharpness, color, composition features from images and develop technologies for restoring and improving by using them. In addition, personalization technology through user reference analysis is under study.  
     
-Please checkout out other Coupe repositories in our [Posgraph](https://github.com/posgraph) github organization.
+Please checkout other Coupe repositories in our [Posgraph](https://github.com/posgraph) github organization.
 
 ## Useful Links ##
 * [Coupe Library](http://coupe.postech.ac.kr/)
