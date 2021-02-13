@@ -50,7 +50,7 @@ Then, place checkpoints under `./checkpoints` (one may change the offset in `./o
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
 # e.g., python test.py --dataroot test --checkpoints_dir checkpoints
 ```
-4. To turn of *sementaic replacement*, add `--is_SR`.
+4. To turn off *sementaic replacement*, specify `--is_SR`.
 ```bash
 python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR
 ```
