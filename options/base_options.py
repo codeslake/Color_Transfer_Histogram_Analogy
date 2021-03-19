@@ -43,7 +43,7 @@ class BaseOptions():
         self.parser.add_argument('--mode', type=str, default='gsgt', help='gsgt, gsrt, rsrt')
         self.parser.add_argument('--test_dir', type=str, default='1', help='1,2,3,4,5')
         self.parser.add_argument('--is_psnr', action='store_true', help='1,2,3,4,5')
-        self.parser.add_argument('--is_SR', action='store_false', help='1,2,3,4,5')
+        self.parser.add_argument('--is_SR', action='store_true', help='1,2,3,4,5')
 
         self.initialized = True
 

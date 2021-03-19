@@ -18,7 +18,7 @@ dataset = data_loader.load_data()
 model = create_model(opt)
 opt.is_psnr = True
 
-summary_dir = os.path.join(opt.results_dir, 'result')
+summary_dir = opt.results_dir
 util.mkdirs([summary_dir])
 
 for i, data in enumerate(dataset):

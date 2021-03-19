@@ -1,7 +1,4 @@
 # Deep Color Transfer using Histogram Analogy
-![Python 2.7.12](https://img.shields.io/badge/python-2.7.12-green.svg?style=plastic)
-![PyTorch 0.4.0](https://img.shields.io/badge/PyTorch-0.4.0-green.svg?style=plastic)
-![CUDA 8.0.61](https://img.shields.io/badge/CUDA-8.0.61-green.svg?style=plastic)
 ![License CC BY-NC](https://img.shields.io/badge/license-GNU_AGPv3-green.svg?style=plastic)
 
 ![Teaser image](./assets/figure.jpg)
@@ -12,6 +9,49 @@ This repository contains the official PyTorch implementation of the following pa
 > **[Deep Color Transfer using Histogram Analogy](http://cg.postech.ac.kr/papers/2020_CGI_JY.pdf)**<br>
 > Junyong Lee, Hyeongseok Son, Gunhee Lee, Jonghyeop Lee, Sunghyun Cho and Seungyong Lee, CGI2020
 
+
+## Getting Started
+### Prerequisites
+*Tested environment*
+
+![Ubuntu](https://img.shields.io/badge/Ubuntu-16.0.4%20&%2018.0.4-blue.svg?style=plastic)
+![Python](https://img.shields.io/badge/Python-3.8.8-green.svg?style=plastic)
+![PyTorch](https://img.shields.io/badge/PyTorch-1.8.0-green.svg?style=plastic)
+![CUDA](https://img.shields.io/badge/CUDA-10.2%20&%2011.1-green.svg?style=plastic)
+
+1. **Install requirements**
+    * `pip install -r requirements.txt`
+
+2. **Pre-trained models**
+    * Download and unzip [pretrained weights](https://www.dropbox.com/s/qohhmr9p81u0syi/checkpoints.zip?dl=1) under `[CHECKPOINT_ROOT]`:
+
+        ```
+        ├── [CHECKPOINT_ROOT]
+        │   ├── *.pth
+        ```
+
+        > **NOTE:**
+        > 
+        > `[CHECKPOINT_ROOT]` can be specified with the option `--checkpoints_dir`.
+
+
+## Testing the network
+1. Place input images and their segment maps should be placed under `./test/input` and `./test/seg_in`, respectively. Place target images and their segment maps under `./test/target` and `./test/seg_tar`, respectively. 
+
+2. Test the network:
+
+```bash
+python test.py --dataroot [test folder path] --checkpoints_dir [CHECKPOINT_ROOT]
+# e.g., python test.py --dataroot test --checkpoints_dir checkpoints
+```
+    * The test results will be saved under `./results/`.
+    * To turn on *semantic replacement*, add `--is_SR`.
+
+    ```bash
+    python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR
+    ```
+
+## Citation
 If you find this code useful, please consider citing:
 ```
 @article{Lee_2020_CTHA,
@@ -25,8 +65,9 @@ If you find this code useful, please consider citing:
 }
 ```
 
-
-For any inquiries, please contact [junyonglee@postech.ac.kr](mailto:junyonglee@postech.ac.kr)
+## Contact
+Open an issue for any inquiries.
+You may also have contact with [junyonglee@postech.ac.kr](mailto:junyonglee@postech.ac.kr)
 
 ## Resources
 
@@ -34,38 +75,15 @@ All material related to our paper is available via the following links:
 
 | Link |
 | :-------------- |
-| [Paper PDF](https://drive.google.com/file/d/1mRVo3JefkgRd2VdJvG5M-8xWtvl60ZWg/view?usp=sharing) |
-| [Supplementary Files](https://drive.google.com/file/d/1sQTGHEcko2HxoIvneyrot3bUabPrN5l1/view?usp=sharing) |
-| [Checkpoint Files](https://drive.google.com/file/d/1Xl8cXmhlD1DjaYNcroRLMjYR3C9QplNs/view?usp=sharing) |
+| [Paper PDF](https://www.dropbox.com/s/8ty3lfqa27e5b5l/202010_Deep%20Color%20Transfer%20using%20Histogram%20Analogy.pdf?dl=1) |
+| [Supplementary Files](http://cg.postech.ac.kr/papers/2020_CGI_JY_supp.pdf) |
+| [Checkpoint Files](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) |
 
 
-## Testing the network
-1. Download pretrained weights for IRN and HEN from [here](https://drive.google.com/file/d/1Xl8cXmhlD1DjaYNcroRLMjYR3C9QplNs/view?usp=sharing).
-Then, place checkpoints under `./checkpoints` (one may change the offset in `./options/base_options.py`).
-
-2. Place your images under `./test`. Input images and their segment map should be placed under `./test/input` and `./test/seg_in`, respectively. Place target images and their segment map under `./test/target` and `./test/seg_tar`. 
-
-3. To test the network, type
-```bash
-python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path]
-# e.g., python test.py --dataroot test --checkpoints_dir checkpoints
-```
-4. To turn of *sementaic replacement*, add `--is_SR`.
-```bash
-python test.py --dataroot [test folder path] --checkpoints_dir [ckpt path] --is_SR
-```
-
-
-## License ##
+## License
 This software is being made available under the terms in the [LICENSE](LICENSE) file.
 
-Any exemptions to these terms requires a license from the Pohang University of Science and Technology.
+Any exemptions to these terms require a license from the Pohang University of Science and Technology.
 
-## About Coupe Project ##
-Project ‘COUPE’ aims to develop software that evaluates and improves the quality of images and videos based on big visual data. To achieve the goal, we extract sharpness, color, composition features from images and develop technologies for restoring and improving by using it. In addition,ersonalization technology through userreference analysis is under study.  
-    
-Please checkout out other Coupe repositories in our [Posgraph](https://github.com/posgraph) github organization.
-
-## Useful Links ##
-* [Coupe Library](http://coupe.postech.ac.kr/)
-* [POSTECH CG Lab.](http://cg.postech.ac.kr/)
+## About Coupe Project
+Project ‘COUPE’ aims to develop software that evaluates and improves the quality of images and videos based on big visual data. To achieve the goal, we extract sharpness, color, composition features from images and develop technologies for restoring and impro
