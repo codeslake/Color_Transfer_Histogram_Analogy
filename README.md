@@ -6,7 +6,7 @@
 
 This repository contains the official PyTorch implementation of the following paper:
 
-> **[Deep Color Transfer using Histogram Analogy](http://cg.postech.ac.kr/papers/2020_CGI_JY.pdf)**<br>
+> **[Deep Color Transfer using Histogram Analogy](https://link.springer.com/epdf/10.1007/s00371-020-01921-6?sharing_token=m2UzXwVlSCP8CbRYNrEcnve4RwlQNchNByi7wbcMAY5_mQV2iPdNT8_ORizvbX3p8mina4UHEjoKsvegf0S_FwC3Yo3cBRV6mlx1mdbvv3CiiREpz3ZqyJuRGmHbygkNL_7X-3hd2CMGSxgPtF22LPsyjpEfhG1R_bNHSSVNvbc%3D)**<br>
 > Junyong Lee, Hyeongseok Son, Gunhee Lee, Jonghyeop Lee, Sunghyun Cho and Seungyong Lee, CGI2020
 
 
@@ -14,10 +14,10 @@ This repository contains the official PyTorch implementation of the following pa
 ### Prerequisites
 *Tested environment*
 
-![Ubuntu](https://img.shields.io/badge/Ubuntu-16.0.4%20&%2018.0.4-blue.svg?style=plastic)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-18.0.4-blue.svg?style=plastic)
 ![Python](https://img.shields.io/badge/Python-3.8.8-green.svg?style=plastic)
 ![PyTorch](https://img.shields.io/badge/PyTorch-1.8.0-green.svg?style=plastic)
-![CUDA](https://img.shields.io/badge/CUDA-10.2%20&%2011.1-green.svg?style=plastic)
+![CUDA](https://img.shields.io/badge/CUDA-10.2-green.svg?style=plastic)
 
 1. **Install requirements**
     * `pip install -r requirements.txt`
@@ -75,10 +75,11 @@ All material related to our paper is available via the following links:
 
 | Link |
 | :-------------- |
-| [Paper PDF](https://www.dropbox.com/s/8ty3lfqa27e5b5l/202010_Deep%20Color%20Transfer%20using%20Histogram%20Analogy.pdf?dl=1) |
+| [Paper PDF](https://link.springer.com/epdf/10.1007/s00371-020-01921-6?sharing_token=m2UzXwVlSCP8CbRYNrEcnve4RwlQNchNByi7wbcMAY5_mQV2iPdNT8_ORizvbX3p8mina4UHEjoKsvegf0S_FwC3Yo3cBRV6mlx1mdbvv3CiiREpz3ZqyJuRGmHbygkNL_7X-3hd2CMGSxgPtF22LPsyjpEfhG1R_bNHSSVNvbc%3D) |
 | [Supplementary Files](http://cg.postech.ac.kr/papers/2020_CGI_JY_supp.pdf) |
 | [Checkpoint Files](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) |
 
+<!-- https://www.dropbox.com/s/8ty3lfqa27e5b5l/202010_Deep%20Color%20Transfer%20using%20Histogram%20Analogy.pdf?raw=1 -->
 
 ## License
 This software is being made available under the terms in the [LICENSE](LICENSE) file.
