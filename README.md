@@ -32,7 +32,7 @@ This repo contains the evaluation code for the following paper:
     * `pip install -r requirements.txt`
 
 2. **Pre-trained models**
-    * Download and unzip [pretrained weights](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) under `[CHECKPOINT_ROOT]`:
+    * Download and unzip pretrained weights ([link 1](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) or [link2](https://postechackr-my.sharepoint.com/:f:/g/personal/junyonglee_postech_ac_kr/EgfqG5rWeYxCvaXwYpcUcpcB1yS_PjLvsOOaJ9M5eNCsDQ?e=dXMhDf)) under `[CHECKPOINT_ROOT]`:
 
         ```
         ├── [CHECKPOINT_ROOT]
@@ -76,7 +76,7 @@ All material related to our paper is available via the following links:
 | :-------------- |
 | [Paper PDF](https://link.springer.com/epdf/10.1007/s00371-020-01921-6?sharing_token=m2UzXwVlSCP8CbRYNrEcnve4RwlQNchNByi7wbcMAY5_mQV2iPdNT8_ORizvbX3p8mina4UHEjoKsvegf0S_FwC3Yo3cBRV6mlx1mdbvv3CiiREpz3ZqyJuRGmHbygkNL_7X-3hd2CMGSxgPtF22LPsyjpEfhG1R_bNHSSVNvbc%3D) |
 | [Supplementary Files](https://www.dropbox.com/s/jxvg6ize41g43vj/Additional_Result.pdf?raw=1) |
-| [Checkpoint Files](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) |
+| Checkpoint Files ([link 1](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) or [link 2](https://postechackr-my.sharepoint.com/:f:/g/personal/junyonglee_postech_ac_kr/EgfqG5rWeYxCvaXwYpcUcpcB1yS_PjLvsOOaJ9M5eNCsDQ?e=dXMhDf)) |
 
 <!-- https://www.dropbox.com/s/8ty3lfqa27e5b5l/202010_Deep%20Color%20Transfer%20using%20Histogram%20Analogy.pdf?raw=1 -->
 
