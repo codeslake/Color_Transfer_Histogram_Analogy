@@ -31,9 +31,9 @@ This repo contains the evaluation code for the following paper:
 
 1. **Install requirements**
     * `pip install -r requirements.txt`
-
+    * 
 2. **Pre-trained models**
-    * Download and unzip pretrained weights ([Google Drive](https://drive.google.com/open?id=1LgmziRPEDnbnQJTLvIVKLqA_TIPq6YHY&authuser=codeslake%40gmail.com&usp=drive_fs) | [Dropbox](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1) | [OneDrive](https://postechackr-my.sharepoint.com/:f:/g/personal/junyonglee_postech_ac_kr/EgfqG5rWeYxCvaXwYpcUcpcB1yS_PjLvsOOaJ9M5eNCsDQ?e=dXMhDf)) under `[CHECKPOINT_ROOT]`:
+    * Download and unzip pretrained weights ([OneDrive](https://onedrive.live.com/download?resid=94530B7E5F49D254%21484&authkey=!AIw6wh6Vjo-IFWs) | [Dropbox](https://www.dropbox.com/s/lkwo9xg168e650i/checkpoints.zip?dl=1)) under `[CHECKPOINT_ROOT]`:
 
         ```
         ├── [CHECKPOINT_ROOT]
